@@ -1,5 +1,5 @@
 # Advanced Analytics in a Big Data World: Assignments Repository
-This repository contains all assignments for the Advanced Analytics in a Big Data World course in the Master of Statistics and Data Science at KU Leuven.
+This repository contains all assignments for the **Advanced Analytics in a Big Data World** course in the Master of Statistics and Data Science at KU Leuven, taught by Prof. dr. Seppe vanden Broucke.
 ## Team members
 - Nicoleta Bizon
 - Giovanni Dettori
