@@ -8,7 +8,16 @@ This repository contains all assignments for the **Advanced Analytics in a Big D
 - Alexander Savvides
 ## Assignment Overview
 ### Assignment 1: Predicting House Sales Prices
-- Develop a predictive model to estimate house prices based on Belgian real estate data using Python.
-- Evaluation metrics:
-  - Winkler Score (α = 0.20)
-  - Mean Absolute Error (MAE)
+### Assignment 2:
+### Assignment 3:
+### Assignment 4:
+## Repository Structure
+📦 Advanced Analytics - Assignments
+┣ 📂 Assignment_1/ # First assignment
+┣ 📂 Assignment_2/ # Second assignment
+┣ 📂 Assignment_3/ # Third assignment
+┣ 📂 datasets/ # Data used in assignments
+┣ 📂 notebooks/ # Jupyter notebooks
+┣ 📂 src/ # Python scripts
+┣ 📜 README.md # Project documentation
+┗ 📜 requirements.txt # Dependencies
