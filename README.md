@@ -3,7 +3,7 @@ This repository contains all assignments for the **Advanced Analytics in a Big D
 ## Team Members
 - Nicoleta Bizon
 - Giovanni Dettori
-- Alisa Khizhnaya
+- Alisa Khyzhna
 - Fabrizio Sacco
 - Alexander Savvides
 ## Assignment Overview
