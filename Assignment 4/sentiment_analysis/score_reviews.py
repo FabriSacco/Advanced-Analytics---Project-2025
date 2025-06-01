@@ -88,7 +88,7 @@ def score_reviews():
     scores_1_10 = [r['sentiment_score_1_10'] for r in scored_reviews]
     voted_up = [r['voted_up'] for r in scored_reviews]
     
-    print("\n=== SCORING RESULTS ===")
+    print("\nSCORING RESULTS")
     print(f"Total reviews scored: {len(scored_reviews)}")
     print(f"\n1-5 Scale Distribution:")
     for i in range(1, 6):

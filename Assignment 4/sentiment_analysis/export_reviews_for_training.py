@@ -85,15 +85,15 @@ def export_reviews_for_training():
     with open(mapping_file, 'w', encoding='utf-8') as f:
         json.dump(mapping_data, f, indent=2, ensure_ascii=False)
     
-    print(f"\n=== EXPORT COMPLETE ===")
+    print(f"\n EXPORT COMPLETE")
     print(f"Total reviews exported: {len(training_data)}")
     print(f"\nFiles created:")
     print(f"1. {training_file}")
-    print(f"   → Full data with all metadata for training")
+    print(f"Full data with all metadata for training")
     print(f"2. {simple_file}")
-    print(f"   → Simple format (edge_id + text) for easy Colab processing")
+    print(f"Simple format (edge_id + text) for easy Colab processing")
     print(f"3. {mapping_file}")
-    print(f"   → Mapping file to import scores back to graph")
+    print(f"Mapping file to import scores back to graph")
     
     # Show sample data
     print(f"\nSample records:")

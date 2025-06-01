@@ -82,8 +82,7 @@ print(f"Validation samples: {len(val_texts)}")
 
 # Choose model - update this based on your preference
 MODEL_NAME = "LiYuan/amazon-review-sentiment-analysis"  # Best for reviews
-# MODEL_NAME = "tabularisai/robust-sentiment-analysis"  # Alternative
-# MODEL_NAME = "cardiffnlp/twitter-roberta-base-sentiment-latest"  # Social media
+
 
 # Load tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
