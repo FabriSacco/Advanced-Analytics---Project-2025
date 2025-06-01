@@ -35,31 +35,26 @@ from torch_geometric.loader import LinkNeighborLoader
 from torch_geometric.utils import negative_sampling
 from node2vec import Node2Vec
 
-print("🚀 Steam Recommender System: Node2Vec + Heterogeneous GNN")
+print("Steam Recommender System: Node2Vec + Heterogeneous GNN")
 print("="*60)
 
 # Configuration
 CONFIG = {
     'device': 'cuda' if torch.cuda.is_available() else 'cpu',
-    'node2vec_dims': 64,        # Reduced from 128 for faster training
-    'node2vec_walk_length': 20, # Reduced from 80 for large graphs
-    'node2vec_num_walks': 5,    # Reduced from 10 to speed up
-    'node2vec_workers': 8,      # Increased workers for parallel processing
+    'node2vec_dims': 64,        
+    'node2vec_walk_length': 20, 
+    'node2vec_num_walks': 5,    
+    'node2vec_workers': 8,      
     'gnn_hidden_dims': 256,
     'gnn_out_dims': 64,
     'learning_rate': 0.001,
     'batch_size': 1024,
     'epochs': 100,
     'early_stopping': 10,
-    # NEW: Recommendation diversity settings
-    'diversity_weight': 0.3,    # Weight for diversity in recommendations
-    'score_temperature': 2.0,  # Temperature for score calibration
-    'min_score_diff': 0.05     # Minimum score difference for diverse recommendations
+    'diversity_weight': 0.3,    
+    'score_temperature': 2.0, 
+    'min_score_diff': 0.05     
 }
-
-print(f"🔧 Device: {CONFIG['device']}")
-print(f"🔧 PyTorch: {torch.__version__}")
-print(f"🔧 PyTorch Geometric: {torch_geometric.__version__}")
 
 class DataLoader:
     """Handles loading and preprocessing of Steam graph data"""
@@ -73,7 +68,7 @@ class DataLoader:
         
     def load_data(self):
         """Load all graph data from files"""
-        print("\n📂 Loading Steam graph data...")
+        print("\n Loading Steam graph data...")
         
         # Load nodes
         print("  Loading nodes...")
@@ -150,7 +145,7 @@ class DataLoader:
     
     def extract_largest_connected_component(self):
         """Extract largest connected component and prepare final dataset structure"""
-        print("\n🔗 Preparing final dataset structure...")
+        print("\n Preparing final dataset structure...")
         
         # Step 1: Get users with complete profiles
         valid_user_ids = set(self.users.keys())
@@ -219,7 +214,7 @@ class DataLoader:
         print(f"    Number of components: {len(final_components)}")
         
         if not is_connected:
-            print(f"    ⚠️  WARNING: Final User-User graph is NOT fully connected!")
+            print(f"    WARNING: Final User-User graph is NOT fully connected!")
             print(f"    Component sizes: {[len(comp) for comp in sorted(final_components, key=len, reverse=True)[:5]]}")
             
             # This should not happen if LCC was extracted correctly, but let's handle it
@@ -261,14 +256,14 @@ class DataLoader:
         print(f"    Apps: {len(self.apps):,} (was {original_app_count:,}) - only apps reviewed by LCC users")
         
         # Step 5: Summary of final dataset
-        print(f"\n📊 Final Dataset Structure:")
-        print(f"    🔗 User-User Graph (LCC): {len(self.users):,} users, {len(self.user_friendships):,} friendships")
-        print(f"    🎮 User-App Reviews: {len(self.user_app_reviews):,} reviews (playtime weighted)")
-        print(f"    🎯 Apps: {len(self.apps):,} apps (only those reviewed by LCC users)")
-        print(f"    👥 User Attributes: loccountrycode only")
-        print(f"    🎯 App Attributes: name, category, app_type, original_id")
-        print(f"    ⚖️  Edge Attributes: User-App (playtime + sentiment), User-User (NO WEIGHTS in final GNN)")
-        print(f"    ✅ User-User graph is fully connected: {nx.is_connected(G_lcc)}")
+        print(f"\n Final Dataset Structure:")
+        print(f"    User-User Graph (LCC): {len(self.users):,} users, {len(self.user_friendships):,} friendships")
+        print(f"    User-App Reviews: {len(self.user_app_reviews):,} reviews (playtime weighted)")
+        print(f"    Apps: {len(self.apps):,} apps (only those reviewed by LCC users)")
+        print(f"    User Attributes: loccountrycode only")
+        print(f"    App Attributes: name, category, app_type, original_id")
+        print(f"    Edge Attributes: User-App (playtime + sentiment), User-User (NO WEIGHTS in final GNN)")
+        print(f"    User-User graph is fully connected: {nx.is_connected(G_lcc)}")
         
         return G_lcc
 
@@ -283,7 +278,7 @@ class Node2VecEmbedder:
         
     def fit(self, friendship_graph, user_app_reviews=None, user_to_idx=None):
         """Train Node2Vec on the friendship network with enhanced edge weights"""
-        print(f"\n🎯 Training Node2Vec embeddings with attribute-aware weights...")
+        print(f"\n Training Node2Vec embeddings with attribute-aware weights...")
         print(f"  Dimensions: {self.config['node2vec_dims']}")
         print(f"  Walk length: {self.config['node2vec_walk_length']}")
         print(f"  Walks per node: {self.config['node2vec_num_walks']}")
@@ -297,7 +292,7 @@ class Node2VecEmbedder:
         else:
             self.enhanced_graph = friendship_graph
             
-        print(f"  📊 Final graph: {self.enhanced_graph.number_of_nodes():,} nodes, {self.enhanced_graph.number_of_edges():,} edges")
+        print(f"  Final graph: {self.enhanced_graph.number_of_nodes():,} nodes, {self.enhanced_graph.number_of_edges():,} edges")
         
         # Create Node2Vec model
         self.model = Node2Vec(
@@ -311,7 +306,7 @@ class Node2VecEmbedder:
         )
         
         # Train embeddings
-        print("  🔄 Training Node2Vec model...")
+        print("  Training Node2Vec model...")
         model = self.model.fit(
             window=10,
             min_count=1,
@@ -323,7 +318,7 @@ class Node2VecEmbedder:
         user_ids = list(self.enhanced_graph.nodes())
         self.embeddings = {}
         
-        print("  📦 Extracting embeddings...")
+        print("  Extracting embeddings...")
         for user_id in tqdm(user_ids, desc="  Extracting embeddings", ncols=80):
             if user_id in model.wv:
                 self.embeddings[user_id] = model.wv[user_id]
@@ -331,7 +326,7 @@ class Node2VecEmbedder:
                 # Fallback for missing nodes
                 self.embeddings[user_id] = np.random.normal(0, 0.1, self.config['node2vec_dims'])
         
-        print(f"  ✅ Generated embeddings for {len(self.embeddings):,} users")
+        print(f"  Generated embeddings for {len(self.embeddings):,} users")
         return self
     
     def _enhance_friendship_weights(self, friendship_graph, user_app_reviews, user_to_idx):
@@ -408,7 +403,7 @@ class AttributeEncoder:
         
     def fit_user_attributes(self, users):
         """Fit encoders for user attributes"""
-        print("  🔧 Encoding user attributes...")
+        print("  Encoding user attributes...")
         
         # Extract unique countries
         countries = set()
@@ -422,12 +417,12 @@ class AttributeEncoder:
         self.country_encoder = {country: i for i, country in enumerate(countries)}
         self.country_encoder['UNKNOWN'] = len(countries)  # For missing values
         
-        print(f"    📍 Countries: {len(countries)} unique values")
+        print(f"    Countries: {len(countries)} unique values")
         return self
     
     def fit_app_attributes(self, apps):
         """Fit encoders for app attributes"""
-        print("  🔧 Encoding app attributes...")
+        print("  Encoding app attributes...")
         
         # Extract unique categories
         categories = set()
@@ -449,13 +444,13 @@ class AttributeEncoder:
         app_types = sorted(list(app_types))
         self.app_type_encoder = {atype: i for i, atype in enumerate(app_types)}
         
-        print(f"    🎮 Categories: {len(categories)} unique values")
-        print(f"    🏷️  App types: {len(app_types)} unique values")
+        print(f"    Categories: {len(categories)} unique values")
+        print(f"    🏷App types: {len(app_types)} unique values")
         return self
     
     def encode_user_features(self, users, user_ids):
         """Create feature vectors for users"""
-        print("  🔢 Creating user feature vectors...")
+        print("  Creating user feature vectors...")
         
         num_countries = len(self.country_encoder)
         features = []
@@ -471,12 +466,12 @@ class AttributeEncoder:
             country_normalized = country_idx / num_countries  # Normalize to [0,1]
             features.append([country_normalized])
         
-        print(f"    👥 User features: {len(features)} users, {len(features[0])} dimensions")
+        print(f"    User features: {len(features)} users, {len(features[0])} dimensions")
         return np.array(features)
     
     def encode_app_features(self, apps, app_ids):
         """Create feature vectors for apps"""
-        print("  🔢 Creating app feature vectors...")
+        print("  Creating app feature vectors...")
         
         features = []
         
@@ -496,7 +491,7 @@ class AttributeEncoder:
             # Create feature vector: [category_normalized, app_type_normalized]
             features.append([category_normalized, app_type_normalized])
         
-        print(f"    🎮 App features: {len(features)} apps, {len(features[0])} dimensions")
+        print(f"    App features: {len(features)} apps, {len(features[0])} dimensions")
         return np.array(features)
 
 class HeterogeneousRecommenderGNN(nn.Module):
@@ -610,7 +605,7 @@ class SteamRecommenderSystem:
     def prepare_data(self):
         """Load and prepare all data with semantic attribute encoding"""
         print("\n" + "="*60)
-        print("🔄 DATA PREPARATION WITH SEMANTIC FEATURES")
+        print("DATA PREPARATION WITH SEMANTIC FEATURES")
         print("="*60)
         
         # Load data
@@ -624,7 +619,7 @@ class SteamRecommenderSystem:
         user_to_idx = {uid: i for i, uid in enumerate(user_ids)}
         
         # Generate Node2Vec embeddings with activity-aware weights
-        print(f"\n🎯 GENERATING ENHANCED NODE2VEC EMBEDDINGS")
+        print(f"\n GENERATING ENHANCED NODE2VEC EMBEDDINGS")
         self.node2vec = Node2VecEmbedder(self.config, self.data_loader).fit(
             friendship_graph, 
             user_app_reviews=self.data_loader.user_app_reviews,
@@ -632,14 +627,14 @@ class SteamRecommenderSystem:
         )
         
         # Prepare PyTorch Geometric data with semantic features
-        print(f"\n🏗️  BUILDING HETEROGENEOUS GRAPH")
+        print(f"\n BUILDING HETEROGENEOUS GRAPH")
         self.data = self._create_hetero_data()
         
         return self
     
     def _create_hetero_data(self):
         """Create HeteroData object with semantic features and Node2Vec embeddings"""
-        print("\n🔗 Creating heterogeneous graph with semantic features...")
+        print("\n Creating heterogeneous graph with semantic features...")
         
         data = HeteroData()
         
@@ -650,21 +645,21 @@ class SteamRecommenderSystem:
         user_to_idx = {uid: i for i, uid in enumerate(user_ids)}
         app_to_idx = {aid: i for i, aid in enumerate(app_ids)}
         
-        print(f"  🔗 User-User Graph (LCC): {len(user_ids):,} users")
-        print(f"  🎮 Apps available: {len(app_ids):,} apps")
+        print(f"  User-User Graph (LCC): {len(user_ids):,} users")
+        print(f"  Apps available: {len(app_ids):,} apps")
         
         # Initialize and fit attribute encoder
-        print("\n🎯 ENCODING SEMANTIC ATTRIBUTES")
+        print("\n ENCODING SEMANTIC ATTRIBUTES")
         encoder = AttributeEncoder()
         encoder.fit_user_attributes(self.data_loader.users)
         encoder.fit_app_attributes(self.data_loader.apps)
         
         # Create user features: Node2Vec embeddings + semantic attributes
-        print("\n  👥 Creating enhanced user features...")
+        print("\n  Creating enhanced user features...")
         user_semantic_features = encoder.encode_user_features(self.data_loader.users, user_ids)
         
         user_features = []
-        print(f"  🔄 Combining Node2Vec + semantic features for {len(user_ids):,} users...")
+        print(f"  Combining Node2Vec + semantic features for {len(user_ids):,} users...")
         for i, uid in enumerate(tqdm(user_ids, desc="  Processing users", ncols=80)):
             # Get Node2Vec embedding
             if uid in self.node2vec.embeddings:
@@ -682,20 +677,20 @@ class SteamRecommenderSystem:
         data['user'].x = torch.FloatTensor(user_features)
         data['user'].num_nodes = len(user_ids)
         
-        print(f"    📊 User feature dimensions: {len(user_features[0])} ({self.config['node2vec_dims']} Node2Vec + {len(user_semantic_features[0])} semantic)")
+        print(f"    User feature dimensions: {len(user_features[0])} ({self.config['node2vec_dims']} Node2Vec + {len(user_semantic_features[0])} semantic)")
         
         # Create app features: learnable embeddings + semantic attributes
-        print("  🎮 Creating enhanced app features...")
+        print("  Creating enhanced app features...")
         app_semantic_features = encoder.encode_app_features(self.data_loader.apps, app_ids)
         
         # For apps, we'll use the semantic features directly and let the GNN learn the rest
         data['app'].x = torch.FloatTensor(app_semantic_features)
         data['app'].num_nodes = len(app_ids)
         
-        print(f"    📊 App feature dimensions: {len(app_semantic_features[0])} semantic features")
+        print(f"    App feature dimensions: {len(app_semantic_features[0])} semantic features")
         
         # User-User friendship edges: NO WEIGHTS for final GNN (Node2Vec uses enhanced weights internally)
-        print("\n  🤝 Creating User-User edges (unweighted for GNN)...")
+        print("\n  Creating User-User edges (unweighted for GNN)...")
         
         # Get the enhanced friendship graph from Node2Vec (activity weights used only for Node2Vec training)
         enhanced_graph = self.node2vec.enhanced_graph
@@ -711,10 +706,10 @@ class SteamRecommenderSystem:
         if friendship_edges:
             data['user', 'friends_with', 'user'].edge_index = torch.LongTensor(friendship_edges).t()
             # NO edge_attr for User-User edges - unweighted
-            print(f"    🔗 User-User edges: {len(friendship_edges):,} (bidirectional, unweighted)")
+            print(f"   User-User edges: {len(friendship_edges):,} (bidirectional, unweighted)")
         
         # User-App review edges (with playtime weights + sentiment attributes)
-        print("  🎮 Creating User-App edges (reviews with playtime + sentiment)...")
+        print("  Creating User-App edges (reviews with playtime + sentiment)...")
         review_edges = []
         review_weights = []  # Playtime-based weights (author_playtime_at_review)
         review_sentiments = []  # Sentiment scores (for recommender, not Node2Vec)
@@ -735,7 +730,7 @@ class SteamRecommenderSystem:
             data['app', 'reviewed_by', 'user'].edge_attr = data['user', 'reviewed', 'app'].edge_attr
             data['app', 'reviewed_by', 'user'].sentiment = data['user', 'reviewed', 'app'].sentiment
             
-            print(f"    🎮 User-App edges: {len(review_edges):,} (playtime-weighted + sentiment)")
+            print(f"    User-App edges: {len(review_edges):,} (playtime-weighted + sentiment)")
         
         # Store mappings and encoder
         self.user_to_idx = user_to_idx
@@ -745,14 +740,14 @@ class SteamRecommenderSystem:
         self.attribute_encoder = encoder
         
         # Final structure summary
-        print(f"\n✅ ENHANCED HETEROGENEOUS GRAPH CREATED:")
-        print(f"    📊 Nodes: {len(user_ids):,} users (LCC) + {len(app_ids):,} apps")
-        print(f"    🔗 User-User: {data['user', 'friends_with', 'user'].edge_index.shape[1]:,} friendship edges (unweighted)")
-        print(f"    🎮 User-App: {data['user', 'reviewed', 'app'].edge_index.shape[1]:,} review edges (playtime-weighted)")
-        print(f"    🧠 User features: Node2Vec ({self.config['node2vec_dims']}D) + Country encoding (1D)")
-        print(f"    🎯 App features: Category + App-type encoding (2D)")
-        print(f"    ⚖️  Edge weights: Playtime (User-App)")
-        print(f"    💭 Sentiment scores: Available for recommender system")
+        print(f"\nENHANCED HETEROGENEOUS GRAPH CREATED:")
+        print(f"    Nodes: {len(user_ids):,} users (LCC) + {len(app_ids):,} apps")
+        print(f"    User-User: {data['user', 'friends_with', 'user'].edge_index.shape[1]:,} friendship edges (unweighted)")
+        print(f"    User-App: {data['user', 'reviewed', 'app'].edge_index.shape[1]:,} review edges (playtime-weighted)")
+        print(f"    User features: Node2Vec ({self.config['node2vec_dims']}D) + Country encoding (1D)")
+        print(f"    App features: Category + App-type encoding (2D)")
+        print(f"    Edge weights: Playtime (User-App)")
+        print(f"    Sentiment scores: Available for recommender system")
         
         return data
     
@@ -770,7 +765,7 @@ class SteamRecommenderSystem:
     def train_model(self):
         """Train the heterogeneous GNN"""
         print("\n" + "="*60)
-        print("🚀 TRAINING HETEROGENEOUS GNN")
+        print("TRAINING HETEROGENEOUS GNN")
         print("="*60)
         
         # Initialize model
@@ -782,7 +777,7 @@ class SteamRecommenderSystem:
             self.data['app'].x.shape[1]    # Actual app feature dimension
         ).to(self.device)
         
-        print(f"📊 Model parameters: {sum(p.numel() for p in self.model.parameters()):,}")
+        print(f"Model parameters: {sum(p.numel() for p in self.model.parameters()):,}")
         
         # Prepare training data - USE ALL INTERACTIONS (no artificial train/test split)
         data = self.data.to(self.device)
@@ -792,7 +787,7 @@ class SteamRecommenderSystem:
         edge_attr = data['user', 'reviewed', 'app'].edge_attr
         sentiment = data['user', 'reviewed', 'app'].sentiment
         
-        print(f"\n🏃‍♂️ Starting training with ALL interaction data...")
+        print(f"\n Starting training with ALL interaction data...")
         print(f"  Total edges: {edge_index.shape[1]:,}")
         print(f"  Note: Using all data - no artificial train/test split for recommender system")
         
@@ -806,7 +801,7 @@ class SteamRecommenderSystem:
         loss_history = []
         
         # Create progress bar for training epochs
-        epoch_pbar = tqdm(range(self.config['epochs']), desc="🚀 Training GNN", ncols=100)
+        epoch_pbar = tqdm(range(self.config['epochs']), desc="Training GNN", ncols=100)
         
         for epoch in epoch_pbar:
             optimizer.zero_grad()
@@ -903,8 +898,8 @@ class SteamRecommenderSystem:
         
         # Load best model
         self.model.load_state_dict(torch.load('best_model.pth'))
-        print(f"\n✅ Training completed! Best loss: {best_loss:.4f}")
-        print(f"🎯 Model trained on ALL {edge_index.shape[1]:,} user-app interactions")
+        print(f"\nTraining completed! Best loss: {best_loss:.4f}")
+        print(f" Model trained on ALL {edge_index.shape[1]:,} user-app interactions")
         
         return self
     
@@ -971,7 +966,7 @@ class SteamRecommenderSystem:
             candidate_categories = []
             candidate_raw_scores = []
             
-            print(f"    🔍 Filtering {len(calibrated_scores)} apps for new recommendations...")
+            print(f"     Filtering {len(calibrated_scores)} apps for new recommendations...")
             for app_idx, (score, raw_score) in enumerate(zip(calibrated_scores, raw_scores)):
                 app_id = self.idx_to_app[app_idx]
                 if app_id not in user_reviewed_apps:  # Only new apps
@@ -997,7 +992,7 @@ class SteamRecommenderSystem:
             
             diversity_weight = self.config.get('diversity_weight', 0.3)
             
-            print(f"    🎯 Applying diversity-aware selection (weight: {diversity_weight})...")
+            print(f"    Applying diversity-aware selection (weight: {diversity_weight})...")
             for i in range(min(top_k, len(remaining_apps))):
                 best_app = None
                 best_score = -1
@@ -1057,7 +1052,7 @@ class SteamRecommenderSystem:
 def test_improved_recommendations(recommender, num_users=5):
     """Test the improved recommendation system with detailed analysis"""
     print("\n" + "="*70)
-    print("🔧 TESTING IMPROVED RECOMMENDATION SYSTEM")
+    print("TESTING IMPROVED RECOMMENDATION SYSTEM")
     print("="*70)
     
     # Test on multiple users
@@ -1068,7 +1063,7 @@ def test_improved_recommendations(recommender, num_users=5):
     score_ranges = []
     
     for i, user_id in enumerate(sample_users):
-        print(f"\n👤 User {user_id} (Test {i+1}/{num_users}):")
+        print(f"\n User {user_id} (Test {i+1}/{num_users}):")
         print("-" * 50)
         
         recommendations = recommender.get_recommendations(user_id, top_k=10)
@@ -1086,7 +1081,7 @@ def test_improved_recommendations(recommender, num_users=5):
             score_ranges.append(max(base_scores) - min(base_scores))
             
             # Display recommendations with enhanced info
-            print("  🎯 Recommendations:")
+            print("  Recommendations:")
             for rec in recommendations:
                 diversity_boost = rec['score'] - rec['base_score']
                 print(f"    {rec['rank']}. {rec['app_name'][:40]:<40} "
@@ -1095,27 +1090,27 @@ def test_improved_recommendations(recommender, num_users=5):
                       f"Final: {rec['score']:.4f} "
                       f"(+{diversity_boost:+.4f})")
             
-            print(f"  📊 Score diversity: {max(base_scores) - min(base_scores):.4f}")
-            print(f"  🎭 Categories: {len(set(user_categories))} unique")
+            print(f"  Score diversity: {max(base_scores) - min(base_scores):.4f}")
+            print(f"  Categories: {len(set(user_categories))} unique")
         else:
-            print("  ❌ No recommendations generated")
+            print("  No recommendations generated")
     
     # Overall statistics
-    print(f"\n📈 OVERALL IMPROVEMENT ANALYSIS:")
+    print(f"\n OVERALL IMPROVEMENT ANALYSIS:")
     print("-" * 50)
-    print(f"  🎯 Unique apps recommended: {len(all_recommended_apps)}")
-    print(f"  📊 Average score range: {np.mean(score_ranges):.4f} ± {np.std(score_ranges):.4f}")
-    print(f"  🎭 Category distribution: {dict(sorted(category_distribution.items(), key=lambda x: x[1], reverse=True))}")
+    print(f"   Unique apps recommended: {len(all_recommended_apps)}")
+    print(f"  Average score range: {np.mean(score_ranges):.4f} ± {np.std(score_ranges):.4f}")
+    print(f"  Category distribution: {dict(sorted(category_distribution.items(), key=lambda x: x[1], reverse=True))}")
     
     # Improvement metrics
     avg_score_range = np.mean(score_ranges) if score_ranges else 0
     unique_apps_ratio = len(all_recommended_apps) / (num_users * 10)  # Max possible unique apps
     category_diversity = len(category_distribution) / len(recommender.data_loader.apps)
     
-    print(f"\n🏆 IMPROVEMENT METRICS:")
-    print(f"  📊 Score diversity improvement: {'✅ Good' if avg_score_range > 0.01 else '⚠️ Still low'}")
-    print(f"  🎯 App uniqueness ratio: {unique_apps_ratio:.2f} {'✅ Good' if unique_apps_ratio > 0.5 else '⚠️ Low'}")
-    print(f"  🎭 Category coverage: {category_diversity:.2f} {'✅ Good' if category_diversity > 0.5 else '⚠️ Limited'}")
+    print(f"\n IMPROVEMENT METRICS:")
+    print(f"  Score diversity improvement: {'✅ Good' if avg_score_range > 0.01 else '⚠️ Still low'}")
+    print(f"  App uniqueness ratio: {unique_apps_ratio:.2f} {'✅ Good' if unique_apps_ratio > 0.5 else '⚠️ Low'}")
+    print(f"  Category coverage: {category_diversity:.2f} {'✅ Good' if category_diversity > 0.5 else '⚠️ Limited'}")
     
     return {
         'avg_score_range': avg_score_range,
@@ -1126,7 +1121,7 @@ def test_improved_recommendations(recommender, num_users=5):
 
 def main():
     """Main execution function"""
-    print("🎮 Steam Recommender System with Node2Vec + Heterogeneous GNN")
+    print("Steam Recommender System with Node2Vec + Heterogeneous GNN")
     print("=" * 70)
     
     # Initialize system
@@ -1137,34 +1132,34 @@ def main():
     
     # Test the improved recommendation system
     print("\n" + "="*60)
-    print("🎯 TESTING IMPROVED RECOMMENDATION SYSTEM")
+    print(" TESTING IMPROVED RECOMMENDATION SYSTEM")
     print("="*60)
     
     # Test the improved system
     improvement_results = test_improved_recommendations(recommender, num_users=5)
     
-    print(f"\n🎉 Recommender system training completed!")
-    print(f"📊 Final model ready for recommendations")
-    print(f"✨ Improvements: Better diversity, temperature scaling, category awareness")
+    print(f"\n Recommender system training completed!")
+    print(f" Final model ready for recommendations")
+    print(f" Improvements: Better diversity, temperature scaling, category awareness")
 
 if __name__ == "__main__":
     # Check if running in Colab
     try:
         import google.colab
-        print("🔧 Running in Google Colab")
+        print(" Running in Google Colab")
         
         # Install required packages
         os.system("pip install node2vec torch-geometric networkx")
         
     except ImportError:
-        print("🔧 Running locally")
+        print(" Running locally")
     
     # Run main pipeline
     recommender = main() 
     
 def evaluate_system_performance(recommender):
     """
-    🔍 COMPREHENSIVE PERFORMANCE EVALUATION
+     COMPREHENSIVE PERFORMANCE EVALUATION
     Run this function after your main pipeline completes to assess system performance.
     
     Usage:
@@ -1172,18 +1167,18 @@ def evaluate_system_performance(recommender):
     """
     
     print("\n" + "="*70)
-    print("🔍 COMPREHENSIVE PERFORMANCE EVALUATION")
+    print(" COMPREHENSIVE PERFORMANCE EVALUATION")
     print("="*70)
     
     # 1. NODE2VEC EMBEDDING QUALITY ASSESSMENT
-    print("\n📊 NODE2VEC EMBEDDING QUALITY:")
+    print("\n NODE2VEC EMBEDDING QUALITY:")
     print("-" * 50)
     
     # Check embedding statistics
     embeddings = list(recommender.node2vec.embeddings.values())
     embeddings_array = np.array(embeddings)
     
-    print(f"  📈 Embedding Statistics:")
+    print(f"   Embedding Statistics:")
     print(f"    Dimensions: {embeddings_array.shape}")
     print(f"    Mean: {embeddings_array.mean():.4f}")
     print(f"    Std: {embeddings_array.std():.4f}")
@@ -1197,19 +1192,19 @@ def evaluate_system_performance(recommender):
     sample_size = min(100, len(embeddings))
     sample_embeddings = embeddings_array[:sample_size]
     
-    print(f"  🔍 Computing similarity matrix for {sample_size} embeddings...")
+    print(f"   Computing similarity matrix for {sample_size} embeddings...")
     similarity_matrix = cosine_similarity(sample_embeddings)
     
     # Remove diagonal (self-similarity = 1.0)
     np.fill_diagonal(similarity_matrix, 0)
     avg_similarity = similarity_matrix.mean()
     
-    print(f"  🔗 Embedding Diversity:")
+    print(f"   Embedding Diversity:")
     print(f"    Average cosine similarity: {avg_similarity:.4f}")
-    print(f"    Quality: {'✅ Good diversity' if avg_similarity < 0.3 else '⚠️ High similarity (potential overfitting)'}")
+    print(f"    Quality: {' Good diversity' if avg_similarity < 0.3 else ' High similarity (potential overfitting)'}")
     
     # 2. GNN TRAINING PERFORMANCE ANALYSIS
-    print("\n🧠 GNN TRAINING PERFORMANCE:")
+    print("\n GNN TRAINING PERFORMANCE:")
     print("-" * 50)
     
     # Evaluate on full dataset (same data used for training - this is correct for RecSys)
@@ -1268,18 +1263,18 @@ def evaluate_system_performance(recommender):
         link_auc = roc_auc_score(all_labels, all_predictions)
         link_ap = average_precision_score(all_labels, all_predictions)
         
-        print(f"  📊 Rating Prediction:")
+        print(f"   Rating Prediction:")
         print(f"    MSE: {rating_mse:.4f}")
         print(f"    MAE: {rating_mae:.4f}")
-        print(f"    Quality: {'✅ Good' if rating_mse < 1.0 else '⚠️ High error'}")
+        print(f"    Quality: {' Good' if rating_mse < 1.0 else ' High error'}")
         
         print(f"  🔗 Link Prediction:")
         print(f"    AUC-ROC: {link_auc:.4f}")
         print(f"    Average Precision: {link_ap:.4f}")
-        print(f"    Quality: {'✅ Excellent' if link_auc > 0.8 else '✅ Good' if link_auc > 0.7 else '⚠️ Needs improvement'}")
+        print(f"    Quality: {' Excellent' if link_auc > 0.8 else ' Good' if link_auc > 0.7 else ' Needs improvement'}")
     
     # 3. RECOMMENDATION QUALITY ASSESSMENT
-    print("\n🎯 RECOMMENDATION QUALITY ASSESSMENT:")
+    print("\n RECOMMENDATION QUALITY ASSESSMENT:")
     print("-" * 50)
     
     # Test recommendations for multiple users
@@ -1288,7 +1283,7 @@ def evaluate_system_performance(recommender):
     total_coverage = 0
     user_scores = []
     
-    print(f"  🔍 Testing recommendations for {len(test_users)} users...")
+    print(f"   Testing recommendations for {len(test_users)} users...")
     for user_id in tqdm(test_users, desc="  Generating recommendations", ncols=80):
         recommendations = recommender.get_recommendations(user_id, top_k=5)
         total_recommended += len(recommendations)
@@ -1303,7 +1298,7 @@ def evaluate_system_performance(recommender):
             categories = set([rec['category'] for rec in recommendations])
             total_coverage += len(categories)
             
-            print(f"  👤 User {user_id}: {len(recommendations)} recs, "
+            print(f"   User {user_id}: {len(recommendations)} recs, "
                   f"score range: {min(scores):.3f}-{max(scores):.3f}, "
                   f"categories: {len(categories)}")
     
@@ -1312,14 +1307,14 @@ def evaluate_system_performance(recommender):
     avg_category_coverage = total_coverage / len(test_users)
     overall_score_diversity = np.std(user_scores) if user_scores else 0
     
-    print(f"\n  📈 Overall Recommendation Quality:")
+    print(f"\n   Overall Recommendation Quality:")
     print(f"    Avg recommendations per user: {avg_recs_per_user:.1f}")
     print(f"    Avg category diversity: {avg_category_coverage:.1f}")
     print(f"    Score diversity (std): {overall_score_diversity:.4f}")
-    print(f"    Quality: {'✅ Good diversity' if overall_score_diversity > 0.1 else '⚠️ Low diversity'}")
+    print(f"    Quality: {' Good diversity' if overall_score_diversity > 0.1 else ' Low diversity'}")
     
     # 4. GRAPH STRUCTURE ANALYSIS
-    print("\n🔗 GRAPH STRUCTURE ANALYSIS:")
+    print("\n GRAPH STRUCTURE ANALYSIS:")
     print("-" * 50)
     
     # Analyze the enhanced friendship graph
@@ -1347,7 +1342,7 @@ def evaluate_system_performance(recommender):
     else:
         avg_path_length = "N/A (too large)"
     
-    print(f"  📊 Network Statistics:")
+    print(f"   Network Statistics:")
     print(f"    Nodes: {num_nodes:,}")
     print(f"    Edges: {num_edges:,}")
     print(f"    Density: {density:.6f}")
@@ -1356,7 +1351,7 @@ def evaluate_system_performance(recommender):
     print(f"    Avg shortest path: {avg_path_length}")
     
     # 5. COUNTRY/ACTIVITY ENHANCEMENT ANALYSIS
-    print("\n🌍 ENHANCEMENT IMPACT ANALYSIS:")
+    print("\n ENHANCEMENT IMPACT ANALYSIS:")
     print("-" * 50)
     
     # Analyze edge weights distribution
@@ -1364,7 +1359,7 @@ def evaluate_system_performance(recommender):
     base_weights = sum(1 for w in edge_weights if abs(w - 1.0) < 0.001)
     enhanced_weights = len(edge_weights) - base_weights
     
-    print(f"  ⚖️ Edge Weight Analysis:")
+    print(f"   Edge Weight Analysis:")
     print(f"    Base weight edges (1.0): {base_weights:,} ({base_weights/len(edge_weights)*100:.1f}%)")
     print(f"    Enhanced weight edges: {enhanced_weights:,} ({enhanced_weights/len(edge_weights)*100:.1f}%)")
     print(f"    Weight range: {min(edge_weights):.3f} - {max(edge_weights):.3f}")
@@ -1376,13 +1371,13 @@ def evaluate_system_performance(recommender):
         country = recommender.data_loader.users[user_id].get('loccountrycode', 'UNKNOWN')
         countries[country] = countries.get(country, 0) + 1
     
-    print(f"  🌍 Country Distribution:")
+    print(f"   Country Distribution:")
     print(f"    Unique countries: {len(countries)}")
     print(f"    Top countries: {dict(sorted(countries.items(), key=lambda x: x[1], reverse=True)[:5])}")
     
     # 6. FINAL ASSESSMENT
     print("\n" + "="*70)
-    print("🏆 FINAL PERFORMANCE ASSESSMENT")
+    print(" FINAL PERFORMANCE ASSESSMENT")
     print("="*70)
     
     # Create overall quality score
@@ -1390,40 +1385,40 @@ def evaluate_system_performance(recommender):
     
     # Node2Vec quality (embedding diversity)
     if avg_similarity < 0.3:
-        quality_factors.append("✅ Node2Vec: Good embedding diversity")
+        quality_factors.append(" Node2Vec: Good embedding diversity")
     else:
-        quality_factors.append("⚠️ Node2Vec: High similarity detected")
+        quality_factors.append(" Node2Vec: High similarity detected")
     
     # GNN quality (AUC performance)
     if link_auc > 0.8:
-        quality_factors.append("✅ GNN: Excellent link prediction")
+        quality_factors.append(" GNN: Excellent link prediction")
     elif link_auc > 0.7:
-        quality_factors.append("✅ GNN: Good link prediction")
+        quality_factors.append(" GNN: Good link prediction")
     else:
-        quality_factors.append("⚠️ GNN: Link prediction needs improvement")
+        quality_factors.append(" GNN: Link prediction needs improvement")
     
     # Recommendation quality
     if avg_recs_per_user >= 3 and overall_score_diversity > 0.1:
-        quality_factors.append("✅ Recommendations: Good quality and diversity")
+        quality_factors.append(" Recommendations: Good quality and diversity")
     else:
-        quality_factors.append("⚠️ Recommendations: Limited quality/diversity")
+        quality_factors.append(" Recommendations: Limited quality/diversity")
     
     # Enhancement effectiveness
     if enhanced_weights / len(edge_weights) > 0.5:
-        quality_factors.append("✅ Enhancements: Activity/country features utilized")
+        quality_factors.append(" Enhancements: Activity/country features utilized")
     else:
-        quality_factors.append("⚠️ Enhancements: Limited feature utilization")
+        quality_factors.append(" Enhancements: Limited feature utilization")
     
-    print("\n📋 Quality Assessment:")
+    print("\n Quality Assessment:")
     for factor in quality_factors:
         print(f"  {factor}")
     
-    overall_quality = sum(1 for f in quality_factors if f.startswith("✅")) / len(quality_factors)
+    overall_quality = sum(1 for f in quality_factors if f.startswith("")) / len(quality_factors)
     
-    print(f"\n🎯 Overall System Quality: {overall_quality*100:.1f}% "
-          f"({'🏆 Excellent' if overall_quality > 0.8 else '✅ Good' if overall_quality > 0.6 else '⚠️ Needs improvement'})")
+    print(f"\n Overall System Quality: {overall_quality*100:.1f}% "
+          f"({' Excellent' if overall_quality > 0.8 else ' Good' if overall_quality > 0.6 else ' Needs improvement'})")
     
-    print(f"\n🎉 Evaluation completed! System is ready for production use.")
+    print(f"\n Evaluation completed! System is ready for production use.")
     
     return {
         'node2vec_similarity': avg_similarity,
