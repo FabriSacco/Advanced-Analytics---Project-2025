@@ -10,5 +10,4 @@ This repository contains all assignments for the **Advanced Analytics in a Big D
 ### Assignment 1: Predictive Modelling on Tabular Data
 ### Assignment 2: Deep Learning on Image Data
 ### Assignment 3: Streaming Analytics on Text Data
-### Assignment 4:
-## Repository Structure
+### Assignment 4: Graph Analytics on Network Data
